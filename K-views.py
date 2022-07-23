@@ -13,6 +13,8 @@ import matplotlib.patches as mpatches
 
 from sklearn.cluster import KMeans
 from sklearn.model_selection import train_test_split
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
 
 # seed_num = 1
 # random.seed(seed_num)
@@ -360,9 +362,9 @@ def gen_gaborparam(An=4,
 if __name__ == '__main__':
     
     # source size and patch size
-    source_size = (450, 450)
-    patch_size = (15, 15)
-    show_mask = False
+    source_size = (578, 578)
+    patch_size = (17, 17)
+    show_mask = True
     # kmeans params
     max_iter = 10000
     loss_threshold = 1e-9
@@ -384,9 +386,9 @@ if __name__ == '__main__':
         2: 'smooth'
     }
     # sample label
-    rough_patch_num = 100000
-    smooth_patch_num = 100000
-    bg_patch_num = 100000
+    rough_patch_num = 10000000
+    smooth_patch_num = 10000000
+    bg_patch_num = 10000000
     An = 4
     gaborparam = gen_gaborparam(An=An)
     
@@ -427,13 +429,13 @@ if __name__ == '__main__':
     for c_l in label:
         print('current label {}'.format(label[c_l]))
         print('length: {}'.format(np.sum(all_label == c_l)))
-    # vis_img_list = vis_patch(patch_row, 
-    #                          patch_col, 
-    #                          patch_size, 
-    #                          all_patch, 
-    #                          all_label, 
-    #                          label, 
-    #                          rgb_or_gray)
+    vis_img_list = vis_patch(patch_row, 
+                             patch_col, 
+                             patch_size, 
+                             all_patch, 
+                             all_label, 
+                             label, 
+                             rgb_or_gray)
     
     # if show_mask:
     #     plt.figure(figsize=figure_size)
@@ -461,6 +463,24 @@ if __name__ == '__main__':
                                                                       test_size=0.1)
     print("train patch size {}".format(train_imgs.shape[0]))
     print("test patch size {}".format(test_imgs.shape[0]))
+
+    # PCA
+    # if npca>0:
+        # Standardizing the features
+    # scaler = StandardScaler()
+    # scaler.fit(train_imgs)
+    # train_imgs = scaler.transform(train_imgs)
+
+    # test_imgs = scaler.transform(test_imgs)
+    
+    # pca = PCA(n_components=4)
+    # pca.fit(train_imgs)
+    # train_imgs = pca.transform(train_imgs)*255
+    # test_imgs = pca.transform(test_imgs)*255
+    # print(train_imgs.shape)
+
+
+
     # train ...
     init_centers = random_select_cluster_center(train_imgs, train_label)    
     character_views_map = train(train_imgs, 
@@ -480,109 +500,108 @@ if __name__ == '__main__':
                                         color_map, 
                                         character_views_map, 
                                         rgb_or_gray)
-    # plt.figure(figsize=figure_size)
-    # img_idx = 0    
-    # for r_i in range(1, row + 1):
-    #     for c_i in range(1, col + 1):
-    #         plt.subplot(row, 2 * col, (r_i - 1) * col + c_i + (r_i - 1) * col)
-    #         plt.imshow(
-    #             ori_image_list[img_idx] if rgb_or_gray == 'rgb' \
-    #                 else cv2.cvtColor(ori_image_list[img_idx], cv2.COLOR_RGB2GRAY), 
-    #             cmap=plt.get_cmap('gray') if rgb_or_gray == 'gray' else None
-    #             )
-    #         img_idx += 1
-
-    # img_idx = 0
-    # for r_i in range(1, row + 1):
-    #     for c_i in range(1, col + 1):
-    #         plt.subplot(row, 2 * col, (r_i - 1) * col + c_i + r_i * col)
-    #         im = plt.imshow(color_image_list[img_idx], 
-    #                         cmap=plt.get_cmap('gray') if rgb_or_gray == 'gray' else None)
-    #         img_idx += 1
-    #         if c_i == col and r_i == 1:
-    #             values = [0, 1, 2]
-    #             colors = {
-    #                 2: 'green', 
-    #                 1: 'blue', 
-    #                 0: 'red' 
-    #             }
-    #             label_name = {
-    #                 0: 'background', 
-    #                 1: 'rough', 
-    #                 2: 'smooth'
-    #             }
-                
-    #             patches = [ mpatches.Patch(color=colors[i], label="Label {}".format(label_name[i]) ) for i in range(len(values)) ]
-    #             plt.legend(handles=patches, bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0. )
-    # plt.show()
-    
-    # # show labels    
     plt.figure(figsize=figure_size)
-    img_idx = 0 
+    img_idx = 0    
     for r_i in range(1, row + 1):
         for c_i in range(1, col + 1):
-            plt.subplot(row, 2 * col, img_idx + 1)
+            plt.subplot(row, 2 * col, (r_i - 1) * col + c_i + (r_i - 1) * col)
             plt.imshow(
                 ori_image_list[img_idx] if rgb_or_gray == 'rgb' \
                     else cv2.cvtColor(ori_image_list[img_idx], cv2.COLOR_RGB2GRAY), 
-                cmap=plt.get_cmap('gray') if rgb_or_gray == 'gray' else None)
-            plt.title('rough' if label_list[img_idx] == 1 else 'smooth')
+                cmap=plt.get_cmap('gray') if rgb_or_gray == 'gray' else None
+                )
             img_idx += 1
+
+    img_idx = 0
+    for r_i in range(1, row + 1):
+        for c_i in range(1, col + 1):
+            plt.subplot(row, 2 * col, (r_i - 1) * col + c_i + r_i * col)
+            im = plt.imshow(color_image_list[img_idx], 
+                            cmap=plt.get_cmap('gray') if rgb_or_gray == 'gray' else None)
+            img_idx += 1
+            if c_i == col and r_i == 1:
+                values = [0, 1, 2]
+                colors = {
+                    2: 'green', 
+                    1: 'blue', 
+                    0: 'red' 
+                }
+                label_name = {
+                    0: 'background', 
+                    1: 'rough', 
+                    2: 'smooth'
+                }
+                
+                patches = [ mpatches.Patch(color=colors[i], label="Label {}".format(label_name[i]) ) for i in range(len(values)) ]
+                plt.legend(handles=patches, bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0. )
     plt.show()
     
-    plt.figure(figsize=(20, 20))
-    plt.title('prediction number {}'.format(20))
-    predict_number = 20
-    row = 4
-    col = 5
-    img_idx = 1
-    for img_path in random.sample(glob.glob('./dataset/data/*.jpg'), predict_number):
-        img = cv2.imread(img_path)
-        print('current image {}'.format(img_path))
-        label = predict_new(img, source_size, patch_size, character_views_map, rgb_or_gray)
-        print('current label {}'.format(label))
-        plt.subplot(row, col, img_idx)
-        plt.imshow(                
-                   ori_image_list[img_idx] if rgb_or_gray == 'rgb' \
-                    else cv2.cvtColor(ori_image_list[img_idx], cv2.COLOR_RGB2GRAY), 
-                   cmap=plt.get_cmap('gray'))
-        plt.title(label)
-        img_idx += 1
-        
-    plt.show()
-    image_file = glob.glob('./dataset/data/*.jpg')
+    # # show labels    
+    # plt.figure(figsize=figure_size)
+    # img_idx = 0 
+    # for r_i in range(1, row + 1):
+    #     for c_i in range(1, col + 1):
+    #         plt.subplot(row, 2 * col, img_idx + 1)
+    #         plt.imshow(
+    #             ori_image_list[img_idx] if rgb_or_gray == 'rgb' \
+    #                 else cv2.cvtColor(ori_image_list[img_idx], cv2.COLOR_RGB2GRAY), 
+    #             cmap=plt.get_cmap('gray') if rgb_or_gray == 'gray' else None)
+    #         plt.title('rough' if label_list[img_idx] == 1 else 'smooth')
+    #         img_idx += 1
+    # plt.show()
     
-    label_map = {
-        'smooth': 1, 
-        'rough': 0
-    }
-    
-    for csv_file in glob.glob('./data/*.csv'):
-        # chose file
-        if 'kvresults25_20.csv' not in csv_file:
-            continue        
-        csv_data = pandas.read_csv(csv_file)
-        image_id = csv_data.id
-        truth_label = csv_data.label
-        hit = 0
-        csv_name = csv_file.split("/")[-1]        
-        for idx, (_id, t_label) in enumerate(zip(image_id, truth_label)):
-            image_path = './dataset/data/{}.jpg'.format(_id)
-            print('current image {}'.format(image_path))
-            img = cv2.imread(image_path)
-            gabor_img = process(img, build_filters(gaborparam))
-            for i in range(An):
-                gabor_img[i] = np.absolute(gabor_img[i] - img)
-                gabor_img[i] = (1 - gabor_img[i] / np.max(gabor_img[i].flatten())) * 255
-            img = gabor_img[0]
-            label = predict_new(img, 
-                                source_size, 
-                                patch_size, 
-                                character_views_map, 
-                                0.5, 
-                                rgb_or_gray)
-            hit += (t_label == label_map[label])
-            csv_data.predict[idx] = label_map[label]
-        print(csv_name, 'acc', hit / len(csv_data))
-        csv_data.to_csv(csv_name)
+    # plt.figure(figsize=(20, 20))
+    # plt.title('prediction number {}'.format(20))
+    # predict_number = 20
+    # row = 4
+    # col = 5
+    # img_idx = 1
+    # for img_path in random.sample(glob.glob('./dataset/data/*.jpg'), predict_number):
+    #     img = cv2.imread(img_path)
+    #     print('current image {}'.format(img_path))
+    #     label = predict_new(img, source_size, patch_size, character_views_map, rgb_or_gray)
+    #     print('current label {}'.format(label))
+    #     plt.subplot(row, col, img_idx)
+    #     plt.imshow(                
+    #                ori_image_list[img_idx] if rgb_or_gray == 'rgb' \
+    #                 else cv2.cvtColor(ori_image_list[img_idx], cv2.COLOR_RGB2GRAY), 
+    #                cmap=plt.get_cmap('gray'))
+    #     plt.title(label)
+    #     img_idx += 1
         
+    # plt.show()
+    # image_file = glob.glob('./dataset/data/*.jpg')
+    
+    # label_map = {
+    #     'smooth': 1, 
+    #     'rough': 0
+    # }
+    
+    # for csv_file in glob.glob('./data/*.csv'):
+    #     # chose file
+    #     if 'kvresults25_10.csv' not in csv_file:
+    #         continue        
+    #     csv_data = pandas.read_csv(csv_file)
+    #     image_id = csv_data.id
+    #     truth_label = csv_data.label
+    #     hit = 0
+    #     csv_name = csv_file.split("/")[-1]        
+    #     for idx, (_id, t_label) in enumerate(zip(image_id, truth_label)):
+    #         image_path = './dataset/data/{}.jpg'.format(_id)
+    #         print('current image {}'.format(image_path))
+    #         img = cv2.imread(image_path)
+    #         gabor_img = process(img, build_filters(gaborparam))
+    #         for i in range(An):
+    #             gabor_img[i] = np.absolute(gabor_img[i] - img)
+    #             gabor_img[i] = (1 - gabor_img[i] / np.max(gabor_img[i].flatten())) * 255
+    #         img = gabor_img[0]
+    #         label = predict_new(img, 
+    #                             source_size, 
+    #                             patch_size, 
+    #                             character_views_map, 
+    #                             0.5, 
+    #                             rgb_or_gray)
+    #         hit += (t_label == label_map[label])
+    #         csv_data.predict[idx] = label_map[label]
+    #     print(csv_name, 'acc', hit / len(csv_data))
+    #     csv_data.to_csv(csv_name)
